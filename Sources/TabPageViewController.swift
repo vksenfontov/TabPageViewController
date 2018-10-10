@@ -80,25 +80,27 @@ open class TabPageViewController: UIPageViewController {
 
 public extension TabPageViewController {
 
-    public func displayControllerWithIndex(_ index: Int, direction: UIPageViewControllerNavigationDirection, animated: Bool) {
-
+    public func selectedController(index: Int, direction: UIPageViewControllerNavigationDirection, animated: Bool) {
+        _selectedController(index: index, direction: direction, animated: animated)
+        guard isViewLoaded else { return }
+        tabView.updateCurrentIndex(index, shouldScroll: true)
+    }
+    
+    func _selectedController(index: Int, direction: UIPageViewControllerNavigationDirection, animated: Bool) {
         beforeIndex = index
         shouldScrollCurrentBar = false
         let nextViewControllers: [UIViewController] = [tabItems[index].viewController]
-
+        
         let completion: ((Bool) -> Void) = { [weak self] _ in
             self?.shouldScrollCurrentBar = true
             self?.beforeIndex = index
         }
-
+        
         setViewControllers(
             nextViewControllers,
             direction: direction,
             animated: animated,
             completion: completion)
-
-        guard isViewLoaded else { return }
-        tabView.updateCurrentIndex(index, shouldScroll: true)
     }
 }
 
@@ -182,7 +184,7 @@ extension TabPageViewController {
         tabView.updateCurrentIndex(beforeIndex, shouldScroll: true)
 
         tabView.pageItemPressedBlock = { [weak self] (index: Int, direction: UIPageViewControllerNavigationDirection) in
-            self?.displayControllerWithIndex(index, direction: direction, animated: true)
+            self?._selectedController(index: index, direction: direction, animated: true)
         }
 
         tabBarTopConstraint = top
