@@ -8,17 +8,36 @@
 
 import UIKit
 
-open class TabPageViewController: UIPageViewController {
+public protocol TabPageViewControllerDataSource {
+    func numberOfItemsForTabPage(viewController: TabPageViewController) -> Int
+    func tabPage(viewController: TabPageViewController, viewControllerAt index: Int) -> UIViewController
+}
+
+public protocol TabPageViewControllerDelegate {
+    
+}
+
+open class TabPageViewController: UIViewController {
+    open var dataSource: TabPageViewControllerDataSource? = nil
     open var isInfinity: Bool = false
     open var option: TabPageOption = TabPageOption()
     open var tabItems: [(viewController: UIViewController, title: String)] = []
 
     var currentIndex: Int? {
-        guard let viewController = viewControllers?.first else {
+        guard let viewController = pageViewController.viewControllers?.first else {
             return nil
         }
         return tabItems.map{ $0.viewController }.index(of: viewController)
     }
+    fileprivate lazy var pageViewController: UIPageViewController = {
+        let controller = UIPageViewController(
+            transitionStyle: .scroll,
+            navigationOrientation: .horizontal,
+            options: [:]
+        )
+        controller.view.translatesAutoresizingMaskIntoConstraints = false
+        return controller
+    }()
     fileprivate var beforeIndex: Int = 0
     fileprivate var tabItemsCount: Int {
         return tabItems.count
@@ -32,14 +51,16 @@ open class TabPageViewController: UIPageViewController {
     fileprivate var statusViewHeightConstraint: NSLayoutConstraint?
     fileprivate var tabBarTopConstraint: NSLayoutConstraint?
 
+    
     public init() {
-        super.init(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
+        super.init(nibName: nil, bundle: nil)
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        super.init(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
+        super.init(coder: aDecoder)
     }
 
+    
     override open func viewDidLoad() {
         super.viewDidLoad()
 
@@ -96,11 +117,12 @@ public extension TabPageViewController {
             self?.beforeIndex = index
         }
         
-        setViewControllers(
+        pageViewController.setViewControllers(
             nextViewControllers,
             direction: direction,
             animated: animated,
-            completion: completion)
+            completion: completion
+        )
     }
 }
 
@@ -110,14 +132,26 @@ public extension TabPageViewController {
 extension TabPageViewController {
 
     fileprivate func setupPageViewController() {
-        dataSource = self
-        delegate = self
-        automaticallyAdjustsScrollViewInsets = false
-
-        setViewControllers([tabItems[beforeIndex].viewController],
-                           direction: .forward,
-                           animated: false,
-                           completion: nil)
+        let pageView = pageViewController.view!
+        pageViewController.willMove(toParent: self)
+        addChild(pageViewController)
+        view.addSubview(pageViewController.view)
+        view.topAnchor.constraint(equalTo: pageView.topAnchor).isActive = true
+        view.leadingAnchor.constraint(equalTo: pageView.leadingAnchor).isActive = true
+        view.trailingAnchor.constraint(equalTo: pageView.trailingAnchor).isActive = true
+        view.bottomAnchor.constraint(equalTo: pageView.bottomAnchor).isActive = true
+        pageViewController.didMove(toParent: self)
+        
+        
+        pageViewController.dataSource = self
+        pageViewController.delegate = self
+        pageViewController.automaticallyAdjustsScrollViewInsets = false
+        pageViewController.setViewControllers(
+            [tabItems[beforeIndex].viewController],
+            direction: .forward,
+            animated: false,
+            completion: nil
+        )
     }
 
     fileprivate func setupScrollView() {
