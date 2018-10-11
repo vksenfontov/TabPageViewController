@@ -73,7 +73,6 @@ open class TabPageViewController: UIViewController {
         super.viewDidLoad()
 
         setupPageViewController()
-        setupScrollView()
     }
 
     override open func viewWillAppear(_ animated: Bool) {
@@ -160,14 +159,6 @@ extension TabPageViewController {
             animated: false,
             completion: nil
         )
-    }
-
-    fileprivate func setupScrollView() {
-        // Disable PageViewController's ScrollView bounce
-        let scrollView = view.subviews.compactMap { $0 as? UIScrollView }.first
-        scrollView?.scrollsToTop = false
-        scrollView?.delegate = self
-        scrollView?.backgroundColor = option.pageBackgoundColor
     }
 
     /**
