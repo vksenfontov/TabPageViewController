@@ -80,13 +80,13 @@ open class TabPageViewController: UIPageViewController {
 
 public extension TabPageViewController {
 
-    public func selectedController(index: Int, direction: UIPageViewControllerNavigationDirection, animated: Bool) {
+    public func selectedController(index: Int, direction: UIPageViewController.NavigationDirection, animated: Bool) {
         _selectedController(index: index, direction: direction, animated: animated)
         guard isViewLoaded else { return }
         tabView.updateCurrentIndex(index, shouldScroll: true)
     }
     
-    func _selectedController(index: Int, direction: UIPageViewControllerNavigationDirection, animated: Bool) {
+    func _selectedController(index: Int, direction: UIPageViewController.NavigationDirection, animated: Bool) {
         beforeIndex = index
         shouldScrollCurrentBar = false
         let nextViewControllers: [UIViewController] = [tabItems[index].viewController]
@@ -183,7 +183,7 @@ extension TabPageViewController {
         tabView.pageTabItems = tabItems.map({ $0.title})
         tabView.updateCurrentIndex(beforeIndex, shouldScroll: true)
 
-        tabView.pageItemPressedBlock = { [weak self] (index: Int, direction: UIPageViewControllerNavigationDirection) in
+        tabView.pageItemPressedBlock = { [weak self] (index: Int, direction: UIPageViewController.NavigationDirection) in
             self?._selectedController(index: index, direction: direction, animated: true)
         }
 
