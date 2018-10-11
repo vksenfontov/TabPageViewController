@@ -14,7 +14,7 @@ public protocol TabMenuViewControllerDataSource: class {
     
     func tabMenu(view: UIView, itemForItemAt index: Int) -> TabItem
     
-    func tabMenu(view: UIView, widthForItemAt index: Int) -> CGFloat
+//    func tabMenu(view: UIView, widthForItemAt index: Int) -> CGFloat
 }
 
 public protocol TabPageViewControllerDataSource {
@@ -51,9 +51,6 @@ open class TabPageViewController: UIViewController {
         return controller
     }()
     fileprivate var beforeIndex: Int = 0
-    fileprivate var tabItemsCount: Int {
-        return tabItems.count
-    }
     fileprivate var defaultContentOffsetX: CGFloat {
         return self.view.bounds.width
     }
@@ -61,7 +58,6 @@ open class TabPageViewController: UIViewController {
     lazy fileprivate var tabView: TabView = self.configuredTabView()
     fileprivate var statusView: UIView?
     fileprivate var statusViewHeightConstraint: NSLayoutConstraint?
-    fileprivate var tabBarTopConstraint: NSLayoutConstraint?
 
     
     public init() {
@@ -224,8 +220,6 @@ extension TabPageViewController {
             self?._selectedController(index: index, direction: direction, animated: true)
         }
 
-        tabBarTopConstraint = top
-
         return tabView
     }
 
@@ -334,7 +328,8 @@ extension TabPageViewController: UIPageViewControllerDelegate {
     }
 
     public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
-        if let currentIndex = currentIndex , currentIndex < tabItemsCount {
+        let numberOfItems = dataSource?.numberOfItemsForTabPage(viewController: self) ?? 0
+        if let currentIndex = currentIndex , currentIndex < numberOfItems {
             tabView.updateCurrentIndex(currentIndex, shouldScroll: false)
             beforeIndex = currentIndex
         }
@@ -352,8 +347,10 @@ extension TabPageViewController: UIScrollViewDelegate {
         if scrollView.contentOffset.x == defaultContentOffsetX || !shouldScrollCurrentBar {
             return
         }
-
-        // (0..<tabItemsCount)
+        
+        let numberOfItems = dataSource?.numberOfItemsForTabPage(viewController: self) ?? 0
+        
+        // (0..<numberOfItems)
         var index: Int
         if scrollView.contentOffset.x > defaultContentOffsetX {
             index = beforeIndex + 1
@@ -361,10 +358,10 @@ extension TabPageViewController: UIScrollViewDelegate {
             index = beforeIndex - 1
         }
         
-        if index == tabItemsCount {
+        if index == numberOfItems {
             index = 0
         } else if index < 0 {
-            index = tabItemsCount - 1
+            index = numberOfItems - 1
         }
 
         let scrollOffsetX = scrollView.contentOffset.x - view.frame.width
