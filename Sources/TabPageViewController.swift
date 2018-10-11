@@ -69,7 +69,6 @@ open class TabPageViewController: UIViewController {
 
         setupPageViewController()
         setupScrollView()
-        updateNavigationBar()
     }
 
     override open func viewWillAppear(_ animated: Bool) {
@@ -87,15 +86,11 @@ open class TabPageViewController: UIViewController {
     override open func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        updateNavigationBar()
         tabView.layouted = true
     }
 
     override open func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-
-        navigationController?.navigationBar.shadowImage = nil
-        navigationController?.navigationBar.setBackgroundImage(nil, for: .default)
     }
 }
 
@@ -173,16 +168,7 @@ extension TabPageViewController {
     /**
      Update NavigationBar
      */
-
-    fileprivate func updateNavigationBar() {
-        if let navigationBar = navigationController?.navigationBar {
-            navigationBar.shadowImage = UIImage()
-            navigationBar.setBackgroundImage(option.tabBackgroundImage, for: .default)
-            navigationBar.isTranslucent = option.isTranslucent
-        }
-    }
-
-    fileprivate func configuredTabView() -> TabView {
+   fileprivate func configuredTabView() -> TabView {
         let tabView = TabView(isInfinity: isInfinity, option: option)
         tabView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -276,60 +262,6 @@ extension TabPageViewController {
 
         statusViewHeightConstraint = height
         self.statusView = statusView
-    }
-
-    public func updateNavigationBarHidden(_ hidden: Bool, animated: Bool) {
-        guard let navigationController = navigationController else { return }
-
-        switch option.hidesTopViewOnSwipeType {
-        case .tabBar:
-            updateTabBarOrigin(hidden: hidden)
-        case .navigationBar:
-            if hidden {
-                navigationController.setNavigationBarHidden(true, animated: true)
-            } else {
-                showNavigationBar()
-            }
-        case .all:
-            updateTabBarOrigin(hidden: hidden)
-            if hidden {
-                navigationController.setNavigationBarHidden(true, animated: true)
-            } else {
-                showNavigationBar()
-            }
-        default:
-            break
-        }
-        if statusView == nil {
-            setupStatusView()
-        }
-
-        statusViewHeightConstraint!.constant = topLayoutGuide.length
-    }
-
-    public func showNavigationBar() {
-        guard let navigationController = navigationController else { return }
-        guard navigationController.isNavigationBarHidden  else { return }
-        guard let tabBarTopConstraint = tabBarTopConstraint else { return }
-
-        if option.hidesTopViewOnSwipeType != .none {
-            tabBarTopConstraint.constant = 0.0
-            UIView.animate(withDuration: TimeInterval(UINavigationController.hideShowBarDuration)) {
-                self.view.layoutIfNeeded()
-            }
-        }
-
-        navigationController.setNavigationBarHidden(false, animated: true)
-        
-    }
-
-    private func updateTabBarOrigin(hidden: Bool) {
-        guard let tabBarTopConstraint = tabBarTopConstraint else { return }
-
-        tabBarTopConstraint.constant = hidden ? -(20.0 + option.tabHeight) : 0.0
-        UIView.animate(withDuration: TimeInterval(UINavigationController.hideShowBarDuration)) {
-            self.view.layoutIfNeeded()
-        }
     }
 }
 

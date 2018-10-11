@@ -19,13 +19,6 @@ class ListViewController: UITableViewController {
     }
 
     fileprivate func updateNavigationBarOrigin(velocity: CGPoint) {
-        guard let tabPageViewController = parent as? TabPageViewController else { return }
-
-        if velocity.y > 0.5 {
-            tabPageViewController.updateNavigationBarHidden(true, animated: true)
-        } else if velocity.y < -0.5 {
-            tabPageViewController.updateNavigationBarHidden(false, animated: true)
-        }
     }
 }
 
@@ -53,8 +46,6 @@ extension ListViewController {
     }
 
     override func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
-        guard let tabpageViewController = parent as? TabPageViewController else { return }
-
-        tabpageViewController.showNavigationBar()
+        
     }
 }
