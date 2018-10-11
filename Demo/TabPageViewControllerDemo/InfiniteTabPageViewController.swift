@@ -27,9 +27,28 @@ class InfiniteTabPageViewController: TabPageViewController {
         isInfinity = true
         option.currentColor = UIColor(red: 246/255, green: 175/255, blue: 32/255, alpha: 1.0)
         option.tabMargin = 30.0
+        
+        dataSource = self
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension InfiniteTabPageViewController: TabPageViewControllerDataSource {
+    func numberOfItemsForTabPage(viewController: TabPageViewController) -> Int {
+        return tabItems.count
+    }
+
+    func tabPage(pageViewController: TabPageViewController, indexAt viewController: UIViewController) -> Int {
+        guard let index = tabItems.map({$0.viewController}).index(of: viewController) else {
+            fatalError("")
+        }
+        return index
+    }
+    
+    func tabPage(pageViewController: TabPageViewController, viewControllerAt index: Int) -> UIViewController {
+        return tabItems[index].viewController
     }
 }

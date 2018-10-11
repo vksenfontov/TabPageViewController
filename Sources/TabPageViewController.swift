@@ -10,7 +10,10 @@ import UIKit
 
 public protocol TabPageViewControllerDataSource {
     func numberOfItemsForTabPage(viewController: TabPageViewController) -> Int
-    func tabPage(viewController: TabPageViewController, viewControllerAt index: Int) -> UIViewController
+    
+    func tabPage(pageViewController: TabPageViewController, indexAt viewController: UIViewController) -> Int
+    
+    func tabPage(pageViewController: TabPageViewController, viewControllerAt index: Int) -> UIViewController
 }
 
 public protocol TabPageViewControllerDelegate {
@@ -110,7 +113,9 @@ public extension TabPageViewController {
     func _selectedController(index: Int, direction: UIPageViewController.NavigationDirection, animated: Bool) {
         beforeIndex = index
         shouldScrollCurrentBar = false
-        let nextViewControllers: [UIViewController] = [tabItems[index].viewController]
+        guard let nextViewController = dataSource?.tabPage(pageViewController: self, viewControllerAt: index) else {
+            return
+        }
         
         let completion: ((Bool) -> Void) = { [weak self] _ in
             self?.shouldScrollCurrentBar = true
@@ -118,7 +123,7 @@ public extension TabPageViewController {
         }
         
         pageViewController.setViewControllers(
-            nextViewControllers,
+            [nextViewController],
             direction: direction,
             animated: animated,
             completion: completion
@@ -146,8 +151,11 @@ extension TabPageViewController {
         pageViewController.dataSource = self
         pageViewController.delegate = self
         pageViewController.automaticallyAdjustsScrollViewInsets = false
+        guard let viewController = dataSource?.tabPage(pageViewController: self, viewControllerAt: beforeIndex) else {
+            fatalError("")
+        }
         pageViewController.setViewControllers(
-            [tabItems[beforeIndex].viewController],
+            [viewController],
             direction: .forward,
             animated: false,
             completion: nil
@@ -329,40 +337,46 @@ extension TabPageViewController {
 // MARK: - UIPageViewControllerDataSource
 
 extension TabPageViewController: UIPageViewControllerDataSource {
-
-    fileprivate func nextViewController(_ viewController: UIViewController, isAfter: Bool) -> UIViewController? {
-
-        guard var index = tabItems.map({$0.viewController}).index(of: viewController) else {
+    fileprivate func nextIndex(_ viewController: UIViewController, isAfter: Bool) -> Int? {
+        guard let count = dataSource?.numberOfItemsForTabPage(viewController: self) else {
             return nil
         }
 
+        guard var index = dataSource?.tabPage(pageViewController: self, indexAt: viewController) else {
+            return nil
+        }
+        
         if isAfter {
             index += 1
         } else {
             index -= 1
         }
-
+        
         if isInfinity {
             if index < 0 {
-                index = tabItems.count - 1
-            } else if index == tabItems.count {
+                index = count - 1
+            } else if index == count {
                 index = 0
             }
         }
-
-        if index >= 0 && index < tabItems.count {
-            return tabItems[index].viewController
-        }
-        return nil
+        
+        return index
     }
 
     public func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
-        return nextViewController(viewController, isAfter: true)
+        guard let index = nextIndex(viewController, isAfter: true) else {
+            return nil
+        }
+        return dataSource?.tabPage(pageViewController: self, viewControllerAt: index)
     }
 
     public func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
-        return nextViewController(viewController, isAfter: false)
+        guard let index = nextIndex(viewController, isAfter: false) else {
+            return nil
+        }
+        return dataSource?.tabPage(pageViewController: self, viewControllerAt: index)
     }
+   
 }
 
 
