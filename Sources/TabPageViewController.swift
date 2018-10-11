@@ -122,7 +122,7 @@ extension TabPageViewController {
 
     fileprivate func setupScrollView() {
         // Disable PageViewController's ScrollView bounce
-        let scrollView = view.subviews.flatMap { $0 as? UIScrollView }.first
+        let scrollView = view.subviews.compactMap { $0 as? UIScrollView }.first
         scrollView?.scrollsToTop = false
         scrollView?.delegate = self
         scrollView?.backgroundColor = option.pageBackgoundColor
@@ -272,7 +272,7 @@ extension TabPageViewController {
 
         if option.hidesTopViewOnSwipeType != .none {
             tabBarTopConstraint.constant = 0.0
-            UIView.animate(withDuration: TimeInterval(UINavigationControllerHideShowBarDuration)) {
+            UIView.animate(withDuration: TimeInterval(UINavigationController.hideShowBarDuration)) {
                 self.view.layoutIfNeeded()
             }
         }
@@ -285,7 +285,7 @@ extension TabPageViewController {
         guard let tabBarTopConstraint = tabBarTopConstraint else { return }
 
         tabBarTopConstraint.constant = hidden ? -(20.0 + option.tabHeight) : 0.0
-        UIView.animate(withDuration: TimeInterval(UINavigationControllerHideShowBarDuration)) {
+        UIView.animate(withDuration: TimeInterval(UINavigationController.hideShowBarDuration)) {
             self.view.layoutIfNeeded()
         }
     }
