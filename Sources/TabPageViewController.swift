@@ -8,6 +8,15 @@
 
 import UIKit
 
+public protocol TabMenuViewControllerDataSource: class {
+    
+    func numberOfItemsForTabMenu() -> Int
+    
+    func tabMenu(view: UIView, itemForItemAt index: Int) -> TabItem
+    
+    func tabMenu(view: UIView, widthForItemAt index: Int) -> CGFloat
+}
+
 public protocol TabPageViewControllerDataSource {
     func numberOfItemsForTabPage(viewController: TabPageViewController) -> Int
     
@@ -24,13 +33,13 @@ open class TabPageViewController: UIViewController {
     open var dataSource: TabPageViewControllerDataSource? = nil
     open var isInfinity: Bool = false
     open var option: TabPageOption = TabPageOption()
-    open var tabItems: [(viewController: UIViewController, title: String)] = []
+    open var tabItems: [TabItem] = []
 
     var currentIndex: Int? {
         guard let viewController = pageViewController.viewControllers?.first else {
             return nil
         }
-        return tabItems.map{ $0.viewController }.index(of: viewController)
+        return dataSource?.tabPage(pageViewController: self, indexAt: viewController)
     }
     fileprivate lazy var pageViewController: UIPageViewController = {
         let controller = UIPageViewController(
