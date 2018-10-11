@@ -24,11 +24,12 @@ class LimitedTabPageViewController: TabPageViewController {
     override init() {
         super.init()
         
+        menuDataSource = self
+        dataSource = self
+
         option.tabWidth = view.frame.width / CGFloat(tabItems.count)
         option.hidesTopViewOnSwipeType = .all
         
-        menuDataSource = self
-        dataSource = self
     }
 
     required init?(coder aDecoder: NSCoder) {
