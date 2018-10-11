@@ -9,7 +9,7 @@
 import UIKit
 import TabPageViewController
 
-class InfiniteTabPageViewController: TabPageViewController {
+class InfiniteTabPageViewController: UIViewController {
     
     let tabItems: [TabItem] = {
         let vc1 = UIViewController()
@@ -32,19 +32,21 @@ class InfiniteTabPageViewController: TabPageViewController {
         ]
     }()
     
-    override init() {
-        super.init()
+    var pageViewController: TabPageViewController!
+    var menuViewController: TabMenuViewController!
         
-        isInfinity = true
-        option.currentColor = UIColor(red: 246/255, green: 175/255, blue: 32/255, alpha: 1.0)
-        option.tabMargin = 30.0
-        
-        menuDataSource = self
-        dataSource = self
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let controller = segue.destination as? TabMenuViewController {
+            menuViewController = controller
+            menuViewController.isInfinity = true
+            menuViewController.dataSource = self
+            menuViewController.delegate = self
+        }
+        else if let controller = segue.destination as? TabPageViewController {
+            pageViewController = controller
+            pageViewController.dataSource = self
+            pageViewController.delegate = self
+        }
     }
 }
 
@@ -58,19 +60,47 @@ extension InfiniteTabPageViewController: TabMenuViewControllerDataSource {
     }
 }
 
-extension InfiniteTabPageViewController: TabPageViewControllerDataSource {
-    func numberOfItemsForTabPage(viewController: TabPageViewController) -> Int {
-        return tabItems.count
+extension InfiniteTabPageViewController: TabMenuViewControllerDelegate {
+    func tabMenu(view: UIView, didSelectItemAt index: Int, direction: UIPageViewController.NavigationDirection) {
+        pageViewController.selectedController(index: index, direction: direction, animated: true)
     }
+}
 
-    func tabPage(pageViewController: TabPageViewController, indexAt viewController: UIViewController) -> Int {
+extension InfiniteTabPageViewController: TabPageViewControllerDataSource {
+    func tabPageViewController(_ pageViewController: TabPageViewController, indexAt viewController: UIViewController) -> Int {
         guard let index = tabItems.map({$0.viewController}).index(of: viewController) else {
             fatalError("")
         }
         return index
     }
     
-    func tabPage(pageViewController: TabPageViewController, viewControllerAt index: Int) -> UIViewController {
+    func tabPageViewController(_ pageViewController: TabPageViewController, viewControllerAt index: Int) -> UIViewController {
         return tabItems[index].viewController
     }
+    
+    func numberOfItemsForTabPage(viewController: TabPageViewController) -> Int {
+        return tabItems.count
+    }
+}
+
+extension InfiniteTabPageViewController: TabPageViewControllerDelegate {
+    func tabPageViewController(_ viewController: TabPageViewController, willBeginPagingAt index: Int, animated: Bool) {
+        print("willBeginPagingAt: \(index)")
+    }
+    
+    func tabPageViewController(_ viewController: TabPageViewController, didFinishPagingAt index: Int, animated: Bool) {
+        print("didFinishPagingAt: \(index)")
+        menuViewController.selectIndex(index: index, animated: true)
+    }
+    
+    
+    
+//        let numberOfItems = dataSource?.numberOfItemsForTabPage(viewController: self) ?? 0
+//        if let currentIndex = currentIndex , currentIndex < numberOfItems {
+//            tabView.updateCurrentIndex(currentIndex, shouldScroll: false)
+//            beforeIndex = currentIndex
+//        }
+//
+//        tabView.updateCollectionViewUserInteractionEnabled(true)
+    
 }

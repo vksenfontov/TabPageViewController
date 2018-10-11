@@ -24,11 +24,10 @@ class LimitedTabPageViewController: TabPageViewController {
     override init() {
         super.init()
         
-        menuDataSource = self
         dataSource = self
 
-        option.tabWidth = view.frame.width / CGFloat(tabItems.count)
-        option.hidesTopViewOnSwipeType = .all
+//        option.tabWidth = view.frame.width / CGFloat(tabItems.count)
+//        option.hidesTopViewOnSwipeType = .all
         
     }
 
@@ -52,14 +51,14 @@ extension LimitedTabPageViewController: TabPageViewControllerDataSource {
         return tabItems.count
     }
     
-    func tabPage(pageViewController: TabPageViewController, indexAt viewController: UIViewController) -> Int {
+    func tabPageViewController(_ pageViewController: TabPageViewController, indexAt viewController: UIViewController) -> Int {
         guard let index = tabItems.map({$0.viewController}).index(of: viewController) else {
             fatalError("")
         }
         return index
     }
     
-    func tabPage(pageViewController: TabPageViewController, viewControllerAt index: Int) -> UIViewController {
+    func tabPageViewController(_ pageViewController: TabPageViewController, viewControllerAt index: Int) -> UIViewController {
         return tabItems[index].viewController
     }
 }

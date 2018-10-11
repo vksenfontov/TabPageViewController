@@ -8,39 +8,36 @@
 
 import UIKit
 
-public protocol TabMenuViewControllerDataSource: class {
-    
-    func numberOfItemsForTabMenu() -> Int
-    
-    func tabMenu(view: UIView, itemForItemAt index: Int) -> TabItem
-    
-//    func tabMenu(view: UIView, widthForItemAt index: Int) -> CGFloat
-}
 
-public protocol TabPageViewControllerDataSource {
+
+public protocol TabPageViewControllerDataSource: class {
     func numberOfItemsForTabPage(viewController: TabPageViewController) -> Int
     
-    func tabPage(pageViewController: TabPageViewController, indexAt viewController: UIViewController) -> Int
+    func tabPageViewController(_ pageViewController: TabPageViewController,
+                               indexAt viewController: UIViewController) -> Int
     
-    func tabPage(pageViewController: TabPageViewController, viewControllerAt index: Int) -> UIViewController
+    func tabPageViewController(_ pageViewController: TabPageViewController,
+                               viewControllerAt index: Int) -> UIViewController
+    
 }
 
-public protocol TabPageViewControllerDelegate {
+public protocol TabPageViewControllerDelegate: class {
     
+    func tabPageViewController(_ viewController: TabPageViewController,
+                               willBeginPagingAt index: Int,
+                               animated: Bool)
+
+    func tabPageViewController(_ viewController: TabPageViewController,
+                               didFinishPagingAt index: Int,
+                               animated: Bool)
 }
 
 open class TabPageViewController: UIViewController {
-    open var menuDataSource: TabMenuViewControllerDataSource? = nil
     open var dataSource: TabPageViewControllerDataSource? = nil
-    open var isInfinity: Bool = false
-    open var option: TabPageOption = TabPageOption()
+    open var delegate: TabPageViewControllerDelegate? = nil
+    public fileprivate(set) var selectedIndex: Int = 0
+    private var toIndex: Int = 0
 
-    var currentIndex: Int? {
-        guard let viewController = pageViewController.viewControllers?.first else {
-            return nil
-        }
-        return dataSource?.tabPage(pageViewController: self, indexAt: viewController)
-    }
     fileprivate lazy var pageViewController: UIPageViewController = {
         let controller = UIPageViewController(
             transitionStyle: .scroll,
@@ -50,14 +47,6 @@ open class TabPageViewController: UIViewController {
         controller.view.translatesAutoresizingMaskIntoConstraints = false
         return controller
     }()
-    fileprivate var beforeIndex: Int = 0
-    fileprivate var defaultContentOffsetX: CGFloat {
-        return self.view.bounds.width
-    }
-    fileprivate var shouldScrollCurrentBar: Bool = true
-    lazy fileprivate var tabView: TabView = self.configuredTabView()
-    fileprivate var statusView: UIView?
-    fileprivate var statusViewHeightConstraint: NSLayoutConstraint?
 
     
     public init() {
@@ -77,20 +66,10 @@ open class TabPageViewController: UIViewController {
 
     override open func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
-        if tabView.superview == nil {
-            tabView = configuredTabView()
-        }
-
-        if let currentIndex = currentIndex , isInfinity {
-            tabView.updateCurrentIndex(currentIndex, shouldScroll: true)
-        }
     }
 
     override open func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-
-        tabView.layouted = true
     }
 
     override open func viewWillDisappear(_ animated: Bool) {
@@ -104,21 +83,12 @@ open class TabPageViewController: UIViewController {
 public extension TabPageViewController {
 
     public func selectedController(index: Int, direction: UIPageViewController.NavigationDirection, animated: Bool) {
-        _selectedController(index: index, direction: direction, animated: animated)
-        guard isViewLoaded else { return }
-        tabView.updateCurrentIndex(index, shouldScroll: true)
-    }
-    
-    func _selectedController(index: Int, direction: UIPageViewController.NavigationDirection, animated: Bool) {
-        beforeIndex = index
-        shouldScrollCurrentBar = false
-        guard let nextViewController = dataSource?.tabPage(pageViewController: self, viewControllerAt: index) else {
+        guard let nextViewController = dataSource?.tabPageViewController(self, viewControllerAt: index) else {
             return
         }
         
         let completion: ((Bool) -> Void) = { [weak self] _ in
-            self?.shouldScrollCurrentBar = true
-            self?.beforeIndex = index
+            self?.selectedIndex = index
         }
         
         pageViewController.setViewControllers(
@@ -150,7 +120,8 @@ extension TabPageViewController {
         pageViewController.dataSource = self
         pageViewController.delegate = self
         pageViewController.automaticallyAdjustsScrollViewInsets = false
-        guard let viewController = dataSource?.tabPage(pageViewController: self, viewControllerAt: beforeIndex) else {
+        selectedIndex = 0
+        guard let viewController = dataSource?.tabPageViewController(self, viewControllerAt: selectedIndex) else {
             fatalError("")
         }
         pageViewController.setViewControllers(
@@ -159,112 +130,6 @@ extension TabPageViewController {
             animated: false,
             completion: nil
         )
-    }
-
-    /**
-     Update NavigationBar
-     */
-   fileprivate func configuredTabView() -> TabView {
-        let tabView = TabView(isInfinity: isInfinity, option: option)
-        tabView.translatesAutoresizingMaskIntoConstraints = false
-
-        let height = NSLayoutConstraint(item: tabView,
-                                        attribute: .height,
-                                        relatedBy: .equal,
-                                        toItem: nil,
-                                        attribute: .height,
-                                        multiplier: 1.0,
-                                        constant: option.tabHeight)
-        tabView.addConstraint(height)
-        view.addSubview(tabView)
-
-        let top = NSLayoutConstraint(item: tabView,
-                                     attribute: .top,
-                                     relatedBy: .equal,
-                                     toItem: topLayoutGuide,
-                                     attribute: .bottom,
-                                     multiplier:1.0,
-                                     constant: 0.0)
-
-        let left = NSLayoutConstraint(item: tabView,
-                                      attribute: .leading,
-                                      relatedBy: .equal,
-                                      toItem: view,
-                                      attribute: .leading,
-                                      multiplier: 1.0,
-                                      constant: 0.0)
-
-        let right = NSLayoutConstraint(item: view,
-                                       attribute: .trailing,
-                                       relatedBy: .equal,
-                                       toItem: tabView,
-                                       attribute: .trailing,
-                                       multiplier: 1.0,
-                                       constant: 0.0)
-
-        view.addConstraints([top, left, right])
-
-        let numberOfItems = menuDataSource?.numberOfItemsForTabMenu() ?? 0
-        var tabItems:[TabItem] = []
-    for index in 0 ..< numberOfItems {
-        guard let item = menuDataSource?.tabMenu(view: tabView, itemForItemAt: index) else {
-            fatalError("")
-        }
-        tabItems.append(item)
-    }
-    
-        tabView.pageTabItems = tabItems.map({ $0.title})
-        tabView.updateCurrentIndex(beforeIndex, shouldScroll: true)
-
-        tabView.pageItemPressedBlock = { [weak self] (index: Int, direction: UIPageViewController.NavigationDirection) in
-            self?._selectedController(index: index, direction: direction, animated: true)
-        }
-
-        return tabView
-    }
-
-    private func setupStatusView() {
-        let statusView = UIView()
-        statusView.backgroundColor = option.tabBackgroundColor
-        statusView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(statusView)
-
-        let top = NSLayoutConstraint(item: statusView,
-                                     attribute: .top,
-                                     relatedBy: .equal,
-                                     toItem: view,
-                                     attribute: .top,
-                                     multiplier:1.0,
-                                     constant: 0.0)
-
-        let left = NSLayoutConstraint(item: statusView,
-                                      attribute: .leading,
-                                      relatedBy: .equal,
-                                      toItem: view,
-                                      attribute: .leading,
-                                      multiplier: 1.0,
-                                      constant: 0.0)
-
-        let right = NSLayoutConstraint(item: view,
-                                       attribute: .trailing,
-                                       relatedBy: .equal,
-                                       toItem: statusView,
-                                       attribute: .trailing,
-                                       multiplier: 1.0,
-                                       constant: 0.0)
-
-        let height = NSLayoutConstraint(item: statusView,
-                                        attribute: .height,
-                                        relatedBy: .equal,
-                                        toItem: nil,
-                                        attribute: .height,
-                                        multiplier: 1.0,
-                                        constant: topLayoutGuide.length)
-
-        view.addConstraints([top, left, right, height])
-
-        statusViewHeightConstraint = height
-        self.statusView = statusView
     }
 }
 
@@ -277,7 +142,7 @@ extension TabPageViewController: UIPageViewControllerDataSource {
             return nil
         }
 
-        guard var index = dataSource?.tabPage(pageViewController: self, indexAt: viewController) else {
+        guard var index = dataSource?.tabPageViewController(self, indexAt: viewController) else {
             return nil
         }
         
@@ -287,13 +152,7 @@ extension TabPageViewController: UIPageViewControllerDataSource {
             index -= 1
         }
         
-        if isInfinity {
-            if index < 0 {
-                index = count - 1
-            } else if index == count {
-                index = 0
-            }
-        }
+        index = (index + count) % count
         
         return index
     }
@@ -302,14 +161,14 @@ extension TabPageViewController: UIPageViewControllerDataSource {
         guard let index = nextIndex(viewController, isAfter: true) else {
             return nil
         }
-        return dataSource?.tabPage(pageViewController: self, viewControllerAt: index)
+        return dataSource?.tabPageViewController(self, viewControllerAt: index)
     }
 
     public func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
         guard let index = nextIndex(viewController, isAfter: false) else {
             return nil
         }
-        return dataSource?.tabPage(pageViewController: self, viewControllerAt: index)
+        return dataSource?.tabPageViewController(self, viewControllerAt: index)
     }
    
 }
@@ -318,57 +177,22 @@ extension TabPageViewController: UIPageViewControllerDataSource {
 // MARK: - UIPageViewControllerDelegate
 
 extension TabPageViewController: UIPageViewControllerDelegate {
-
     public func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
-        shouldScrollCurrentBar = true
-        tabView.scrollToHorizontalCenter()
-
-        // Order to prevent the the hit repeatedly during animation
-        tabView.updateCollectionViewUserInteractionEnabled(false)
+        guard let to = pendingViewControllers.first, let toIndex = dataSource?.tabPageViewController(self, indexAt: to) else {
+            return
+        }
+        self.toIndex = toIndex
+        self.delegate?.tabPageViewController(self,
+                                             willBeginPagingAt: toIndex,
+                                             animated: true)
     }
 
     public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
-        let numberOfItems = dataSource?.numberOfItemsForTabPage(viewController: self) ?? 0
-        if let currentIndex = currentIndex , currentIndex < numberOfItems {
-            tabView.updateCurrentIndex(currentIndex, shouldScroll: false)
-            beforeIndex = currentIndex
-        }
-
-        tabView.updateCollectionViewUserInteractionEnabled(true)
+        selectedIndex = toIndex
+        self.delegate?.tabPageViewController(self,
+                                             didFinishPagingAt: selectedIndex,
+                                             animated: true)
     }
 }
 
 
-// MARK: - UIScrollViewDelegate
-
-extension TabPageViewController: UIScrollViewDelegate {
-
-    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView.contentOffset.x == defaultContentOffsetX || !shouldScrollCurrentBar {
-            return
-        }
-        
-        let numberOfItems = dataSource?.numberOfItemsForTabPage(viewController: self) ?? 0
-        
-        // (0..<numberOfItems)
-        var index: Int
-        if scrollView.contentOffset.x > defaultContentOffsetX {
-            index = beforeIndex + 1
-        } else {
-            index = beforeIndex - 1
-        }
-        
-        if index == numberOfItems {
-            index = 0
-        } else if index < 0 {
-            index = numberOfItems - 1
-        }
-
-        let scrollOffsetX = scrollView.contentOffset.x - view.frame.width
-        tabView.scrollCurrentBarView(index, contentOffsetX: scrollOffsetX)
-    }
-
-    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        tabView.updateCurrentIndex(beforeIndex, shouldScroll: true)
-    }
-}
