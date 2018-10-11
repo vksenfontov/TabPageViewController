@@ -30,10 +30,10 @@ public protocol TabPageViewControllerDelegate {
 }
 
 open class TabPageViewController: UIViewController {
+    open var menuDataSource: TabMenuViewControllerDataSource? = nil
     open var dataSource: TabPageViewControllerDataSource? = nil
     open var isInfinity: Bool = false
     open var option: TabPageOption = TabPageOption()
-    open var tabItems: [TabItem] = []
 
     var currentIndex: Int? {
         guard let viewController = pageViewController.viewControllers?.first else {
@@ -213,6 +213,15 @@ extension TabPageViewController {
 
         view.addConstraints([top, left, right])
 
+        let numberOfItems = menuDataSource?.numberOfItemsForTabMenu() ?? 0
+        var tabItems:[TabItem] = []
+    for index in 0 ..< numberOfItems {
+        guard let item = menuDataSource?.tabMenu(view: tabView, itemForItemAt: index) else {
+            fatalError("")
+        }
+        tabItems.append(item)
+    }
+    
         tabView.pageTabItems = tabItems.map({ $0.title})
         tabView.updateCurrentIndex(beforeIndex, shouldScroll: true)
 

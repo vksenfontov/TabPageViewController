@@ -11,20 +11,54 @@ import TabPageViewController
 
 class LimitedTabPageViewController: TabPageViewController {
 
-    override init() {
-        super.init()
+    let tabItems: [TabItem] = {
         let vc1 = UIViewController()
         vc1.view.backgroundColor = UIColor.white
         let vc2 = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "ListViewController")
-        tabItems = [
+        return [
             TabItem(title: "First", viewController: vc1),
             TabItem(title: "Second", viewController: vc2),
         ]
+    }()
+    
+    override init() {
+        super.init()
+        
         option.tabWidth = view.frame.width / CGFloat(tabItems.count)
         option.hidesTopViewOnSwipeType = .all
+        
+        menuDataSource = self
+        dataSource = self
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension LimitedTabPageViewController: TabMenuViewControllerDataSource {
+    func numberOfItemsForTabMenu() -> Int {
+        return tabItems.count
+    }
+    
+    func tabMenu(view: UIView, itemForItemAt index: Int) -> TabItem {
+        return tabItems[index]
+    }
+}
+
+extension LimitedTabPageViewController: TabPageViewControllerDataSource {
+    func numberOfItemsForTabPage(viewController: TabPageViewController) -> Int {
+        return tabItems.count
+    }
+    
+    func tabPage(pageViewController: TabPageViewController, indexAt viewController: UIViewController) -> Int {
+        guard let index = tabItems.map({$0.viewController}).index(of: viewController) else {
+            fatalError("")
+        }
+        return index
+    }
+    
+    func tabPage(pageViewController: TabPageViewController, viewControllerAt index: Int) -> UIViewController {
+        return tabItems[index].viewController
     }
 }
