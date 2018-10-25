@@ -26,6 +26,7 @@ class LimitedTabPageViewController: TabPageViewController {
         
         dataSource = self
 
+        
 //        option.tabWidth = view.frame.width / CGFloat(tabItems.count)
 //        option.hidesTopViewOnSwipeType = .all
         

@@ -11,7 +11,7 @@ import UIKit
 internal class TabView: UIView {
 
     var pageItemPressedBlock: ((_ index: Int, _ direction: UIPageViewController.NavigationDirection) -> Void)?
-    var pageTabItems: [String] = [] {
+    var pageTabItems: [TabItem] = [] {
         didSet {
             pageTabItemsCount = pageTabItems.count
             beforeIndex = pageTabItems.count
@@ -37,7 +37,6 @@ internal class TabView: UIView {
     @IBOutlet fileprivate weak var currentBarView: UIView!
     @IBOutlet fileprivate weak var currentBarViewWidthConstraint: NSLayoutConstraint!
     @IBOutlet fileprivate weak var currentBarViewHeightConstraint: NSLayoutConstraint!
-    @IBOutlet fileprivate weak var bottomBarViewHeightConstraint: NSLayoutConstraint!
 
     init(isInfinity: Bool, option: TabPageOption) {
        super.init(frame: CGRect.zero)
@@ -45,7 +44,7 @@ internal class TabView: UIView {
         self.isInfinity = isInfinity
         Bundle(for: TabView.self).loadNibNamed("TabView", owner: self, options: nil)
         addSubview(contentView)
-        contentView.backgroundColor = option.tabBackgroundColor.withAlphaComponent(option.tabBarAlpha)
+        contentView.backgroundColor = UIColor.clear
 
         let top = NSLayoutConstraint(item: contentView,
             attribute: .top,
@@ -89,8 +88,10 @@ internal class TabView: UIView {
 
         collectionView.scrollsToTop = false
 
-        currentBarView.backgroundColor = option.currentColor
-        currentBarViewHeightConstraint.constant = option.currentBarHeight
+        currentBarViewHeightConstraint.constant = option.fontSize + 8
+        currentBarView.backgroundColor = option.defaultColor
+        currentBarView.layer.masksToBounds = true
+        currentBarView.layer.cornerRadius = currentBarViewHeightConstraint.constant / 2
         if !isInfinity {
             currentBarView.removeFromSuperview()
             collectionView.addSubview(currentBarView)
@@ -113,8 +114,6 @@ internal class TabView: UIView {
             currentBarViewLeftConstraint = left
             collectionView.addConstraints([top, left])
         }
-
-        bottomBarViewHeightConstraint.constant = 1.0 / UIScreen.main.scale
     }
 
     required internal init?(coder aDecoder: NSCoder) {
@@ -150,8 +149,6 @@ extension TabView {
         let currentIndexPath = IndexPath(item: currentIndex, section: 0)
         let nextIndexPath = IndexPath(item: nextIndex, section: 0)
         if let currentCell = collectionView.cellForItem(at: currentIndexPath) as? TabCollectionCell, let nextCell = collectionView.cellForItem(at: nextIndexPath) as? TabCollectionCell {
-            nextCell.hideCurrentBarView()
-            currentCell.hideCurrentBarView()
             currentBarView.isHidden = false
 
             if currentBarViewWidth == 0.0 {
@@ -244,7 +241,6 @@ extension TabView {
             if animated && shouldScroll {
                 cell.isCurrent = true
             }
-            cell.hideCurrentBarView()
             currentBarViewWidthConstraint.constant = cell.frame.width
             if !isInfinity {
                 currentBarViewLeftConstraint?.constant = cell.frame.origin.x
@@ -342,10 +338,6 @@ extension TabView: UICollectionViewDelegate {
     internal func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView.isDragging {
             currentBarView.isHidden = true
-            let indexPath = IndexPath(item: currentIndex, section: 0)
-            if let cell = collectionView.cellForItem(at: indexPath) as? TabCollectionCell {
-                cell.showCurrentBarView()
-            }
         }
 
         guard isInfinity else {

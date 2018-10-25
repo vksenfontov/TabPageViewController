@@ -18,23 +18,23 @@ class InfiniteTabPageViewController: UIViewController {
         vc2.view.backgroundColor = UIColor(red: 252/255, green: 150/255, blue: 149/255, alpha: 1.0)
         let vc3 = UIViewController()
         vc3.view.backgroundColor = UIColor(red: 149/255, green: 218/255, blue: 252/255, alpha: 1.0)
-        let vc4 = UIViewController()
-        vc4.view.backgroundColor = UIColor(red: 149/255, green: 252/255, blue: 197/255, alpha: 1.0)
-        let vc5 = UIViewController()
-        vc5.view.backgroundColor = UIColor(red: 252/255, green: 182/255, blue: 106/255, alpha: 1.0)
+//        let vc4 = UIViewController()
+//        vc4.view.backgroundColor = UIColor(red: 149/255, green: 252/255, blue: 197/255, alpha: 1.0)
+//        let vc5 = UIViewController()
+//        vc5.view.backgroundColor = UIColor(red: 252/255, green: 182/255, blue: 106/255, alpha: 1.0)
 
         return [
-            TabItem(title: "Mon.", viewController: vc1),
-            TabItem(title: "Tue.", viewController: vc2),
-            TabItem(title: "Wed.", viewController: vc3),
-            TabItem(title: "Thu.", viewController: vc4),
-            TabItem(title: "Fri.", viewController: vc5),
+            TabItem(title: "公園", viewController: vc1),
+            TabItem(title: "お気に入り", viewController: vc2),
+            TabItem(title: "会場", viewController: vc3),
+//            TabItem(title: "Thu.", viewController: vc4),
+//            TabItem(title: "Fri.", viewController: vc5),
         ]
     }()
     
-    var pageViewController: TabPageViewController!
     var menuViewController: TabMenuViewController!
-        
+    var pageViewController: TabPageViewController!
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let controller = segue.destination as? TabMenuViewController {
             menuViewController = controller
@@ -47,6 +47,27 @@ class InfiniteTabPageViewController: UIViewController {
             pageViewController.dataSource = self
             pageViewController.delegate = self
         }
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        navigationController?.navigationBar.barTintColor = UIColor.bubbleGumPink
+        menuViewController.view.removeFromSuperview()
+        menuViewController.removeFromParentViewController()
+        
+//        menuViewController.view.translatesAutoresizingMaskIntoConstraints = false
+        let menuView = menuViewController.view
+        
+//        menuView?.widthAnchor.constraint(equalToConstant: view.frame.width)
+//        menuView?.heightAnchor.constraint(equalToConstant: 40)
+
+        navigationItem.titleView = menuView
+        navigationItem.hidesBackButton = true
     }
 }
 

@@ -19,6 +19,9 @@
 		4C2123001E6EA1FB00572DBD /* TabView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4C2122AF1E6E8AF300572DBD /* TabView.xib */; };
 		4C4753CA1E7159C600D9DD5C /* TabPageViewController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = OBJ_14 /* TabPageViewController.framework */; };
 		4C4753CB1E7159C600D9DD5C /* TabPageViewController.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = OBJ_14 /* TabPageViewController.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F4192FBB2181871F00389D1A /* UIColor+.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4192FBA2181871F00389D1A /* UIColor+.swift */; };
+		F4192FBD21818F9100389D1A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4C2122EE1E6E8FD300572DBD /* Assets.xcassets */; };
+		F4192FC02181BBD700389D1A /* TitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4192FBF2181BBD700389D1A /* TitleView.swift */; };
 		F4C32B07216F021800ED8C6F /* TabItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C32B06216F021800ED8C6F /* TabItem.swift */; };
 		F4C32B09216F1C9A00ED8C6F /* TabMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C32B08216F1C9A00ED8C6F /* TabMenuViewController.swift */; };
 		F8CE39F71F35AE3A00CF74BA /* LimitedTabPageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8CE39F61F35AE3A00CF74BA /* LimitedTabPageViewController.swift */; };
@@ -74,6 +77,8 @@
 		4C2122EE1E6E8FD300572DBD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Demo/TabPageViewControllerDemo/Assets.xcassets; sourceTree = "<group>"; };
 		4C2122F21E6E91FA00572DBD /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4C2122F51E6E93DF00572DBD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Demo/TabPageViewControllerDemo/Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
+		F4192FBA2181871F00389D1A /* UIColor+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+.swift"; sourceTree = "<group>"; };
+		F4192FBF2181BBD700389D1A /* TitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleView.swift; sourceTree = "<group>"; };
 		F4C32B06216F021800ED8C6F /* TabItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabItem.swift; sourceTree = "<group>"; };
 		F4C32B08216F1C9A00ED8C6F /* TabMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabMenuViewController.swift; sourceTree = "<group>"; };
 		F8CE39F61F35AE3A00CF74BA /* LimitedTabPageViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = LimitedTabPageViewController.swift; path = Demo/TabPageViewControllerDemo/LimitedTabPageViewController.swift; sourceTree = "<group>"; };
@@ -192,6 +197,7 @@
 		OBJ_8 /* TabPageViewController */ = {
 			isa = PBXGroup;
 			children = (
+				F4192FBA2181871F00389D1A /* UIColor+.swift */,
 				4C2122AA1E6E8AF300572DBD /* TabCollectionCell.swift */,
 				4C2122AB1E6E8AF300572DBD /* TabCollectionCell.xib */,
 				4C2122AC1E6E8AF300572DBD /* TabPageOption.swift */,
@@ -200,6 +206,7 @@
 				4C2122AE1E6E8AF300572DBD /* TabView.swift */,
 				4C2122AF1E6E8AF300572DBD /* TabView.xib */,
 				F4C32B06216F021800ED8C6F /* TabItem.swift */,
+				F4192FBF2181BBD700389D1A /* TitleView.swift */,
 			);
 			name = TabPageViewController;
 			path = Sources;
@@ -310,6 +317,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C2122FA1E6E9AAE00572DBD /* Main.storyboard in Resources */,
+				F4192FBD21818F9100389D1A /* Assets.xcassets in Resources */,
 				4C2122F91E6E9AA800572DBD /* LaunchScreen.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -348,6 +356,8 @@
 				4C2122B21E6E8AF300572DBD /* TabView.swift in Sources */,
 				F4C32B07216F021800ED8C6F /* TabItem.swift in Sources */,
 				4C2122B01E6E8AF300572DBD /* TabCollectionCell.swift in Sources */,
+				F4192FBB2181871F00389D1A /* UIColor+.swift in Sources */,
+				F4192FC02181BBD700389D1A /* TitleView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

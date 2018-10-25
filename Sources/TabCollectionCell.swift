@@ -13,41 +13,55 @@ class TabCollectionCell: UICollectionViewCell {
     var tabItemButtonPressedBlock: (() -> Void)?
     var option: TabPageOption = TabPageOption() {
         didSet {
-            currentBarViewHeightConstraint.constant = option.currentBarHeight
         }
     }
-    var item: String = "" {
+    var item: TabItem! {
         didSet {
-            itemLabel.text = item
-            itemLabel.invalidateIntrinsicContentSize()
+//            itemLabel.text = item
+//            itemLabel.invalidateIntrinsicContentSize()
+            button.setTitle(item?.title, for: .normal)
+            button.setImage(item?.defaultImage, for: .normal)
+            button.setImage(item?.defaultImage, for: [.normal, .highlighted])
+            button.setImage(item?.selectedImage, for: .selected)
+            button.setImage(item?.selectedImage, for: [.selected, .highlighted])
+            if let _ = item?.selectedImage {
+                button.contentEdgeInsets.left = 8
+                button.contentEdgeInsets.right = 8
+                button.imageEdgeInsets.right = 8
+                button.titleEdgeInsets.left = 8
+            } else {
+                button.contentEdgeInsets = .zero
+                button.imageEdgeInsets = .zero
+                button.titleEdgeInsets = .zero
+            }
+            button.setTitleColor(option.defaultColor, for: .normal)
+            button.setTitleColor(option.defaultColor, for: [.normal, .highlighted])
+            button.setTitleColor(option.currentColor, for: .selected)
+            button.setTitleColor(option.currentColor, for: [.selected, .highlighted])
+            button.invalidateIntrinsicContentSize()
             invalidateIntrinsicContentSize()
         }
     }
     var isCurrent: Bool = false {
         didSet {
-            currentBarView.isHidden = !isCurrent
             if isCurrent {
                 highlightTitle()
             } else {
                 unHighlightTitle()
             }
-            currentBarView.backgroundColor = option.currentColor
             layoutIfNeeded()
         }
     }
 
     @IBOutlet fileprivate weak var itemLabel: UILabel!
-    @IBOutlet fileprivate weak var currentBarView: UIView!
-    @IBOutlet fileprivate weak var currentBarViewHeightConstraint: NSLayoutConstraint!
+    @IBOutlet fileprivate weak var button: UIButton!
 
     override func awakeFromNib() {
         super.awakeFromNib()
-
-        currentBarView.isHidden = true
     }
 
     override func sizeThatFits(_ size: CGSize) -> CGSize {
-        if item.count == 0 {
+        if item.title.count == 0 {
             return CGSize.zero
         }
 
@@ -64,33 +78,29 @@ class TabCollectionCell: UICollectionViewCell {
 
 extension TabCollectionCell {
     override var intrinsicContentSize : CGSize {
-        let width: CGFloat
-        if let tabWidth = option.tabWidth , tabWidth > 0.0 {
-            width = tabWidth
-        } else {
-            width = itemLabel.intrinsicContentSize.width + option.tabMargin * 2
+        var width: CGFloat = button.intrinsicContentSize.width + option.tabMargin * 2
+        if let tabMinWidth = option.tabMinWidth {
+            if width < tabMinWidth {
+                width = tabMinWidth
+            }
         }
-
+        
         let size = CGSize(width: width, height: option.tabHeight)
         return size
     }
 
-    func hideCurrentBarView() {
-        currentBarView.isHidden = true
-    }
-
-    func showCurrentBarView() {
-        currentBarView.isHidden = false
-    }
-
     func highlightTitle() {
-        itemLabel.textColor = option.currentColor
-        itemLabel.font = UIFont.boldSystemFont(ofSize: option.fontSize)
+//        itemLabel.textColor = option.currentColor
+//        itemLabel.font = UIFont.boldSystemFont(ofSize: option.fontSize)
+        button.isSelected = true
+//        button.tintColor = option.defaultColor
     }
 
     func unHighlightTitle() {
-        itemLabel.textColor = option.defaultColor
-        itemLabel.font = UIFont.systemFont(ofSize: option.fontSize)
+//        itemLabel.textColor = option.defaultColor
+//        itemLabel.font = UIFont.systemFont(ofSize: option.fontSize)
+        button.isSelected = false
+//        button.tintColor = option.currentColor
     }
 }
 

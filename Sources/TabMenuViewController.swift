@@ -40,10 +40,15 @@ public class TabMenuViewController: UIViewController {
     fileprivate var statusView: UIView?
     fileprivate var statusViewHeightConstraint: NSLayoutConstraint?
     
+    public override func loadView() {
+        view = TitleView()
+    }
+    
     override public func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        view.backgroundColor = UIColor.clear
     }
     
     override open func viewWillAppear(_ animated: Bool) {
@@ -73,6 +78,7 @@ public class TabMenuViewController: UIViewController {
      */
     fileprivate func configuredTabView() -> TabView {
         let tabView = TabView(isInfinity: isInfinity, option: option)
+        tabView.backgroundColor = UIColor.clear
         tabView.translatesAutoresizingMaskIntoConstraints = false
         
         let height = NSLayoutConstraint(item: tabView,
@@ -120,7 +126,7 @@ public class TabMenuViewController: UIViewController {
             tabItems.append(item)
         }
         
-        tabView.pageTabItems = tabItems.map({ $0.title})
+        tabView.pageTabItems = tabItems
         tabView.updateCurrentIndex(beforeIndex, shouldScroll: true)
         
         tabView.pageItemPressedBlock = { [weak self] (index: Int, direction: UIPageViewController.NavigationDirection) in
@@ -129,51 +135,6 @@ public class TabMenuViewController: UIViewController {
         
         return tabView
     }
-    
-    private func setupStatusView() {
-        let statusView = UIView()
-        statusView.backgroundColor = option.tabBackgroundColor
-        statusView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(statusView)
-        
-        let top = NSLayoutConstraint(item: statusView,
-                                     attribute: .top,
-                                     relatedBy: .equal,
-                                     toItem: view,
-                                     attribute: .top,
-                                     multiplier:1.0,
-                                     constant: 0.0)
-        
-        let left = NSLayoutConstraint(item: statusView,
-                                      attribute: .leading,
-                                      relatedBy: .equal,
-                                      toItem: view,
-                                      attribute: .leading,
-                                      multiplier: 1.0,
-                                      constant: 0.0)
-        
-        let right = NSLayoutConstraint(item: view,
-                                       attribute: .trailing,
-                                       relatedBy: .equal,
-                                       toItem: statusView,
-                                       attribute: .trailing,
-                                       multiplier: 1.0,
-                                       constant: 0.0)
-        
-        let height = NSLayoutConstraint(item: statusView,
-                                        attribute: .height,
-                                        relatedBy: .equal,
-                                        toItem: nil,
-                                        attribute: .height,
-                                        multiplier: 1.0,
-                                        constant: topLayoutGuide.length)
-        
-        view.addConstraints([top, left, right, height])
-        
-        statusViewHeightConstraint = height
-        self.statusView = statusView
-    }
-
 }
 
 extension TabMenuViewController {

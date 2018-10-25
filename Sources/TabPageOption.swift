@@ -20,13 +20,13 @@ public struct TabPageOption {
     public init() {}
 
     public var fontSize = UIFont.systemFontSize
-    public var currentColor = UIColor(red: 105/255, green: 182/255, blue: 245/255, alpha: 1.0)
-    public var defaultColor = UIColor(red: 153/255, green: 153/255, blue: 153/255, alpha: 1.0)
+    public var currentColor = UIColor.bubbleGumPink
+    public var defaultColor = UIColor.white
     public var tabHeight: CGFloat = 32.0
     public var tabMargin: CGFloat = 20.0
-    public var tabWidth: CGFloat?
+    public var tabMinWidth: CGFloat? = 120
     public var currentBarHeight: CGFloat = 2.0
-    public var tabBackgroundColor: UIColor = .white
+    public var tabBackgroundColor: UIColor = UIColor.clear
     public var pageBackgoundColor: UIColor = UIColor.white
     public var isTranslucent: Bool = true
     public var hidesTopViewOnSwipeType: HidesTopContentsOnSwipeType = .none
