@@ -8,14 +8,29 @@
 
 import UIKit
 
+internal var isRTL: Bool {
+	return UIApplication.shared.userInterfaceLayoutDirection == .rightToLeft
+}
+
 internal class TabView: UIView {
 
-    var pageItemPressedBlock: ((_ index: Int, _ direction: UIPageViewControllerNavigationDirection) -> Void)?
-    var pageTabItems: [String] = [] {
-        didSet {
-            pageTabItemsCount = pageTabItems.count
-            beforeIndex = pageTabItems.count
-        }
+	var pageItemPressedBlock: ((_ index: Int, _ direction: UIPageViewController.NavigationDirection) -> Void)?
+	var _pageTabItems: [String] = []
+    var pageTabItems: [String] /*= []*/ {
+// without RTL
+//        didSet {
+//            pageTabItemsCount = pageTabItems.count
+//            beforeIndex = pageTabItems.count
+//        }
+//VK RTL
+		set {
+			_pageTabItems = isRTL ? newValue.reversed() : newValue
+			pageTabItemsCount = pageTabItems.count
+			beforeIndex = pageTabItems.count
+		}
+		get {
+			return _pageTabItems
+		}
     }
     var layouted: Bool = false
 
@@ -85,7 +100,7 @@ internal class TabView: UIView {
         let bundle = Bundle(for: TabView.self)
         let nib = UINib(nibName: TabCollectionCell.cellIdentifier(), bundle: bundle)
         collectionView.register(nib, forCellWithReuseIdentifier: TabCollectionCell.cellIdentifier())
-        cellForSize = nib.instantiate(withOwner: nil, options: nil).first as! TabCollectionCell
+		cellForSize = (nib.instantiate(withOwner: nil, options: nil).first as! TabCollectionCell)
 
         collectionView.scrollsToTop = false
 
@@ -104,10 +119,10 @@ internal class TabView: UIView {
                 constant: option.tabHeight - currentBarViewHeightConstraint.constant)
 
             let left = NSLayoutConstraint(item: currentBarView,
-                attribute: .leading,
+				attribute: (isRTL ? .trailing : .leading), //VK RTL
                 relatedBy: .equal,
                 toItem: collectionView,
-                attribute: .leading,
+                attribute: (isRTL ? .trailing : .leading), //VK RTL
                 multiplier: 1.0,
                 constant: 0.0)
             currentBarViewLeftConstraint = left
@@ -127,6 +142,14 @@ internal class TabView: UIView {
 
 extension TabView {
 
+	// VK RTL
+	func barViewLeftConstraintAsRTL(_ ltrValue: CGFloat) -> CGFloat {
+		if isRTL {
+			return -ltrValue
+		}
+		return ltrValue
+	}
+	
     /**
      Called when you swipe in isInfinityTabPageViewController, moves the contentOffset of collectionView
 
@@ -134,6 +157,11 @@ extension TabView {
      - parameter contentOffsetX: contentOffset.x of scrollView of isInfinityTabPageViewController
      */
     func scrollCurrentBarView(_ index: Int, contentOffsetX: CGFloat) {
+		var index = index
+		if isRTL {
+			index = pageTabItemsCount - index - 1 //VK RTL
+		}
+
         var nextIndex = isInfinity ? index + pageTabItemsCount : index
         if isInfinity && index == 0 && (beforeIndex - pageTabItemsCount) == pageTabItemsCount - 1 {
             // Calculate the index at the time of transition to the first item from the last item of pageTabItems
@@ -161,7 +189,7 @@ extension TabView {
             let distance = (currentCell.frame.width / 2.0) + (nextCell.frame.width / 2.0)
             let scrollRate = contentOffsetX / frame.width
 
-            if fabs(scrollRate) > 0.6 {
+			if abs(scrollRate) > 0.6 {
                 nextCell.highlightTitle()
                 currentCell.unHighlightTitle()
             } else {
@@ -169,18 +197,19 @@ extension TabView {
                 currentCell.highlightTitle()
             }
 
-            let width = fabs(scrollRate) * (nextCell.frame.width - currentCell.frame.width)
-            if isInfinity {
+			let width = abs(scrollRate) * (nextCell.frame.width - currentCell.frame.width)
+			if isInfinity {
                 let scroll = scrollRate * distance
                 collectionView.contentOffset.x = collectionViewContentOffsetX + scroll
             } else {
                 if scrollRate > 0 {
-                currentBarViewLeftConstraint?.constant = currentCell.frame.minX + scrollRate * currentCell.frame.width
+                	currentBarViewLeftConstraint?.constant = barViewLeftConstraintAsRTL(currentCell.frame.minX + scrollRate * currentCell.frame.width)
                 } else {
-                    currentBarViewLeftConstraint?.constant = currentCell.frame.minX + nextCell.frame.width * scrollRate
+                    currentBarViewLeftConstraint?.constant = barViewLeftConstraintAsRTL(currentCell.frame.minX + nextCell.frame.width * scrollRate)
                 }
             }
-            currentBarViewWidthConstraint.constant = currentBarViewWidth + width
+			currentBarViewWidthConstraint.constant = currentBarViewWidth + width
+
         }
     }
 
@@ -200,6 +229,11 @@ extension TabView {
      */
     func updateCurrentIndex(_ index: Int, shouldScroll: Bool) {
         deselectVisibleCells()
+		
+		var index = index
+		if isRTL {
+			index = pageTabItemsCount - index - 1 //VK RTL
+		}
 
         currentIndex = isInfinity ? index + pageTabItemsCount : index
 
@@ -245,9 +279,9 @@ extension TabView {
                 cell.isCurrent = true
             }
             cell.hideCurrentBarView()
-            currentBarViewWidthConstraint.constant = cell.frame.width
+			currentBarViewWidthConstraint.constant = cell.frame.width
             if !isInfinity {
-                currentBarViewLeftConstraint?.constant = cell.frame.origin.x
+                currentBarViewLeftConstraint?.constant = barViewLeftConstraintAsRTL(cell.frame.origin.x)
             }
             UIView.animate(withDuration: 0.2, animations: {
                 self.layoutIfNeeded()
@@ -277,7 +311,7 @@ extension TabView {
     fileprivate func deselectVisibleCells() {
         collectionView
             .visibleCells
-            .flatMap { $0 as? TabCollectionCell }
+			.compactMap { $0 as? TabCollectionCell }
             .forEach { $0.isCurrent = false }
     }
 }
@@ -303,7 +337,7 @@ extension TabView: UICollectionViewDataSource {
         cell.option = option
         cell.isCurrent = fixedIndex == (currentIndex % pageTabItemsCount)
         cell.tabItemButtonPressedBlock = { [weak self, weak cell] in
-            var direction: UIPageViewControllerNavigationDirection = .forward
+			var direction: UIPageViewController.NavigationDirection = .forward
             if let pageTabItemsCount = self?.pageTabItemsCount, let currentIndex = self?.currentIndex {
                 if self?.isInfinity == true {
                     if (indexPath.item < pageTabItemsCount) || (indexPath.item < currentIndex) {
@@ -315,7 +349,13 @@ extension TabView: UICollectionViewDataSource {
                     }
                 }
             }
-            self?.pageItemPressedBlock?(fixedIndex, direction)
+			if let pageTabItemsCount = self?.pageTabItemsCount {
+				var _fixedIndex = fixedIndex
+				if isRTL {
+					_fixedIndex = pageTabItemsCount - fixedIndex - 1 //VK RTL
+				}
+            	self?.pageItemPressedBlock?(_fixedIndex, direction)
+			}
 
             if cell?.isCurrent == false {
                 // Not accept touch events to scroll the animation is finished
